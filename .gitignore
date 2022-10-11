@@ -4,6 +4,12 @@
 # Log file
 *.log
 
+# Log folder
+/log
+
+# Eclipse project file
+.project
+
 # BlueJ files
 *.ctxt
 
