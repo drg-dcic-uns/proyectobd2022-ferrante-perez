@@ -51,10 +51,13 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 *      deberá retornar falso y si hubo algún otro error deberá producir y propagar una excepción.
 		 */
 		
-		// Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.  		
-		this.legajo = 1;
-		return true;
-		// Fin datos estáticos de prueba.
+		DAOEmpleado dao = new DAOEmpleadoImpl(this.conexion);
+		EmpleadoBean empleado = dao.recuperarEmpleado(Integer.parseInt(legajo));
+		if(empleado!= null && (empleado.getPassword().equalsIgnoreCase(password))) {
+			this.legajo = empleado.getLegajo();
+			return true;
+		}
+		else {return false;}
 	}
 	
 	@Override
