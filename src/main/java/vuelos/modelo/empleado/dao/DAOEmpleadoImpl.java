@@ -36,25 +36,33 @@ public class DAOEmpleadoImpl implements DAOEmpleado {
 		 *      establecida con el servidor de B.D. (inicializada en el constructor DAOEmpleadoImpl(...)). 
 		 */		
 		
-		/*
-		 * Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.  
-		 */		
 		EmpleadoBean empleado = null;
+		String sql = "SELECT * FROM empleados WHERE legajo LIKE '%"+legajo+ "%';";
+		try {
+			PreparedStatement stmt = conexion.prepareStatement(sql);
+			ResultSet rs= stmt.executeQuery(sql);
 		
-		empleado = new EmpleadoBeanImpl();
-		empleado.setLegajo(9);
-		empleado.setApellido("ApEmp9");
-		empleado.setNombre("NomEmp9");
-		empleado.setTipoDocumento("DNI");
-		empleado.setNroDocumento(9);
-		empleado.setDireccion("DirEmp9");
-		empleado.setTelefono("999-9999");
-		empleado.setCargo("Empleado de Prestamos");
-		empleado.setPassword("45c48cce2e2d7fbdea1afc51c7c6ad26"); // md5(9);
-		empleado.setNroSucursal(7);
-		
+			if(rs.next()) {	
+				empleado = new EmpleadoBeanImpl();
+				empleado.setLegajo(rs.getInt("legajo"));
+				empleado.setApellido(rs.getString("apellido"));
+				empleado.setNombre(rs.getString("nombre"));
+				empleado.setTipoDocumento(rs.getString("doc_tipo"));
+				empleado.setNroDocumento(rs.getInt("doc_nro"));
+				empleado.setDireccion(rs.getString("direccion"));
+				empleado.setTelefono(rs.getString("telefono"));
+				empleado.setCargo("Empleado de Prestamos");
+				empleado.setPassword("123");//empleado.setPassword(rs.getString("password")); // md5(9);
+				empleado.setNroSucursal(7);
+			}
+			rs.close();
+			}catch (SQLException ex) {
+				logger.error("SQLException: " + ex.getMessage());
+				logger.error("SQLState: " + ex.getSQLState());
+				logger.error("VendorError: " + ex.getErrorCode());		   
+				throw new Exception("Error en la conexión con la BD.");
+		   }
 		return empleado;
-		// Fin datos estáticos de prueba.
 	}
 
 }
