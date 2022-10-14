@@ -1,11 +1,15 @@
 package vuelos.modelo.empleado;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,15 +53,31 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 *      En caso exitoso deberá registrar el legajo en la propiedad legajo y retornar true.
 		 *      Si la autenticación no es exitosa porque el legajo no es válido o el password es incorrecto
 		 *      deberá retornar falso y si hubo algún otro error deberá producir y propagar una excepción.
+		 *      
+		 *      esto ya funciona -AF
 		 */
 		
+		boolean success = false;
 		DAOEmpleado dao = new DAOEmpleadoImpl(this.conexion);
-		EmpleadoBean empleado = dao.recuperarEmpleado(Integer.parseInt(legajo));
-		if(empleado!= null && (empleado.getPassword().equalsIgnoreCase(password))) {
-			this.legajo = empleado.getLegajo();
-			return true;
+		EmpleadoBean empleado = null;
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		String md5Pass;
+		
+		try {
+			empleado = dao.recuperarEmpleado(Integer.parseInt(legajo));
+		} catch (NumberFormatException e) {
+			logger.debug("Error parseando legajo");
+			return success;
 		}
-		else {return false;}
+		
+		md.update(password.getBytes());
+		md5Pass = DatatypeConverter.printHexBinary(md.digest());
+		
+		if (empleado != null && (empleado.getPassword().equalsIgnoreCase(md5Pass))) {
+			this.legajo = empleado.getLegajo();
+			success = true;
+		}
+		return success;
 	}
 	
 	@Override

@@ -37,12 +37,12 @@ public class DAOEmpleadoImpl implements DAOEmpleado {
 		 */		
 		
 		EmpleadoBean empleado = null;
-		String sql = "SELECT * FROM empleados WHERE legajo LIKE '%"+legajo+ "%';";
+		String sql = "SELECT * FROM empleados WHERE legajo = " + legajo;
 		try {
 			PreparedStatement stmt = conexion.prepareStatement(sql);
-			ResultSet rs= stmt.executeQuery(sql);
+			ResultSet rs = stmt.executeQuery(sql);
 		
-			if(rs.next()) {	
+			if (rs.next()) {	
 				empleado = new EmpleadoBeanImpl();
 				empleado.setLegajo(rs.getInt("legajo"));
 				empleado.setApellido(rs.getString("apellido"));
@@ -52,11 +52,11 @@ public class DAOEmpleadoImpl implements DAOEmpleado {
 				empleado.setDireccion(rs.getString("direccion"));
 				empleado.setTelefono(rs.getString("telefono"));
 				empleado.setCargo("Empleado de Prestamos");
-				empleado.setPassword("123");//empleado.setPassword(rs.getString("password")); // md5(9);
+				empleado.setPassword(rs.getString("password")); // md5(9);
 				empleado.setNroSucursal(7);
 			}
 			rs.close();
-			}catch (SQLException ex) {
+			} catch (SQLException ex) {
 				logger.error("SQLException: " + ex.getMessage());
 				logger.error("SQLState: " + ex.getSQLState());
 				logger.error("VendorError: " + ex.getErrorCode());		   
