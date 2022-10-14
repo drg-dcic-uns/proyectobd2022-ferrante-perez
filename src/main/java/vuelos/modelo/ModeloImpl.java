@@ -1,6 +1,7 @@
 package vuelos.modelo;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -47,17 +48,17 @@ public class ModeloImpl implements Modelo {
 	{
 		logger.info("Se intenta realizar la siguiente consulta {}",sql);
 		ResultSet rs= null;		
-		/* Descomentar y completar el codigo dentro de try{...} para realizar la consulta SQL 
+		// Descomentar y completar el codigo dentro de try{...} para realizar la consulta SQL 
 		try
 		{       
-			...
+			PreparedStatement stmt = conexion.prepareStatement(sql);
+			rs = stmt.executeQuery(sql);
 		}
 		catch (SQLException ex){
 		   logger.error("SQLException: " + ex.getMessage());
 		   logger.error("SQLState: " + ex.getSQLState());
 		   logger.error("VendorError: " + ex.getErrorCode());				   
 		}	
-		*/
 		return rs;
 	}	
 	
@@ -70,16 +71,16 @@ public class ModeloImpl implements Modelo {
 	{
 		logger.info("Se intenta realizar la siguiente actualizacion {}",sql);
 				
-		/* Descomentar y completar codigo dentro de try{...} para realizar la sentencia de actualización SQL 
+		// Descomentar y completar codigo dentro de try{...} para realizar la sentencia de actualización SQL 
 		try
 		{       
-			...
+			PreparedStatement stmt = conexion.prepareStatement(sql);
+			stmt.executeUpdate(sql);
 		}
 		catch (SQLException ex){
 		   logger.error("SQLException: " + ex.getMessage());
 		   logger.error("SQLState: " + ex.getSQLState());
 		   logger.error("VendorError: " + ex.getErrorCode());				   
-		}	
-		*/		
+		}		
 	}	
 }
