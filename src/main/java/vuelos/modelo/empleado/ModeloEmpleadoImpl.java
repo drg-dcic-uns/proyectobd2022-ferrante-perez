@@ -59,7 +59,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 
 		
 		boolean success = false;
-
 		DAOEmpleado dao = new DAOEmpleadoImpl(this.conexion);
 		EmpleadoBean empleado = null;
 		MessageDigest md = MessageDigest.getInstance("MD5");
@@ -80,7 +79,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 			success = true;
 		}
 		return success;
-
 	}
 	
 	@Override
