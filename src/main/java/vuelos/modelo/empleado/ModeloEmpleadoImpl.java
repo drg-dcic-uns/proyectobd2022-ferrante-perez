@@ -89,17 +89,21 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 *      Deberia propagar una excepción si hay algún error en la consulta.
 		 */
 		
-		/*
-		 * Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales. 
-		 * 
-		 *  Como no hay una tabla con los tipos de documento, se deberán recuperar todos los tipos validos
-		 *  de la tabla de pasajeros
-		 */
 		ArrayList<String> tipos = new ArrayList<String>();
-		tipos.add("DNI");
-		tipos.add("Pasaporte");
-		// Fin datos estáticos de prueba.
 		
+		String sql = "SELECT DISTINCT doc_tipo FROM pasajeros";
+		ResultSet rs = this.consulta(sql);
+		
+		try {
+			while(rs.next()) {
+				String tipo = rs.getString("doc_tipo");
+				tipos.add(tipo);
+			} 
+			}catch (SQLException ex){
+				logger.error("SQLException: " + ex.getMessage());
+				logger.error("SQLState: " + ex.getSQLState());
+				logger.error("VendorError: " + ex.getErrorCode());				   
+				}	
 		return tipos;
 	}		
 	
@@ -128,26 +132,19 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		ArrayList<UbicacionesBean> ubicaciones = new ArrayList<UbicacionesBean>();
 		
 		String sql = "SELECT * FROM ubicaciones";
-		try {
-			PreparedStatement stmt = conexion.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery(sql);
+		ResultSet rs = this.consulta(sql);
 			
-			while(rs.next()) {
-				UbicacionesBean ubicacion = new UbicacionesBeanImpl();
-				ubicacion.setPais(rs.getString("pais"));
-				ubicacion.setEstado(rs.getString("estado"));
-				ubicacion.setCiudad(rs.getString("ciudad"));
-				ubicacion.setHuso(rs.getInt("huso"));
+		while(rs.next()) {
+			UbicacionesBean ubicacion = new UbicacionesBeanImpl();
+			ubicacion.setPais(rs.getString("pais"));
+			ubicacion.setEstado(rs.getString("estado"));
+			ubicacion.setCiudad(rs.getString("ciudad"));
+			ubicacion.setHuso(rs.getInt("huso"));
 				
-				ubicaciones.add(ubicacion);
-			}
-			rs.close();
-			} catch (SQLException ex) {
-				logger.error("SQLException: " + ex.getMessage());
-				logger.error("SQLState: " + ex.getSQLState());
-				logger.error("VendorError: " + ex.getErrorCode());		   
-				throw new Exception("Error en la conexión con la BD.");
-			}
+			ubicaciones.add(ubicacion);
+		}
+		rs.close();
+
 		return ubicaciones;
 	}
 
