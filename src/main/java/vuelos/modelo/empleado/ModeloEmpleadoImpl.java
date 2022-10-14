@@ -50,7 +50,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 *      Si la autenticación no es exitosa porque el legajo no es válido o el password es incorrecto
 		 *      deberá retornar falso y si hubo algún otro error deberá producir y propagar una excepción.
 		 */
-		
+
 		DAOEmpleado dao = new DAOEmpleadoImpl(this.conexion);
 		EmpleadoBean empleado = dao.recuperarEmpleado(Integer.parseInt(legajo));
 		if(empleado!= null && (empleado.getPassword().equalsIgnoreCase(password))) {
@@ -58,6 +58,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 			return true;
 		}
 		else {return false;}
+		
 	}
 	
 	@Override
