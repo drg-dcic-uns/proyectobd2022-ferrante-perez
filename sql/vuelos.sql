@@ -287,73 +287,36 @@ CREATE VIEW vuelos_disponibles AS
 	ORDER BY
 			nro_vuelo ASC;
 
-/*
-	SELECT 	nro_vuelo,
-			modelo,
-			fecha,
-			dia_sale,
-			hora_sale,
-			hora_llega,
-			tiempo_estimado,
-			codigo_aero_sale,
-			nombre_aero_sale,
-			ciudad_sale,
-			estado_sale,
-			pais_sale,
-			codigo_aero_llega,
-			nombre_aero_llega,
-			ciudad_llega,
-			estado_llega,
-			pais_llega,
-			precio,
-			asientos_disponibles,
-			clase
-	FROM
-		(SELECT	numero AS nro_vuelo,
-				codigo AS codigo_aero_sale,
-				nombre AS nombre_aero_sale,
-				ciudad AS ciudad_sale,
-				estado AS estado_sale,
-				pais AS pais_sale
-		FROM
-			(SELECT	numero,
-					aeropuerto_salida
-			FROM vuelos_programados) VS
-		JOIN aeropuertos ON VS.aeropuerto_salida = codigo) VS
-	NATURAL JOIN
-		(SELECT numero AS nro_vuelo,
-				codigo AS codigo_aero_llega,
-				nombre AS nombre_aero_llega,
-				ciudad AS ciudad_llega,
-				estado AS estado_llega,
-				pais AS pais_llega
-		FROM
-			(SELECT numero,
-					aeropuerto_llegada
-			FROM vuelos_programados) VS
-		JOIN aeropuertos ON VS.aeropuerto_llegada = codigo) VL
-	NATURAL JOIN
-		(SELECT numero AS nro_vuelo,
-				modelo_avion AS modelo,
-				fecha,
-				dia AS dia_sale,
-				hora_sale,
-				hora_llega,
-				concat(hora_llega - hora_sale) AS tiempo_estimado
-		FROM
-			(SELECT *
-			FROM salidas
-			NATURAL JOIN instancias_vuelo) S
-		JOIN vuelos_programados ON numero = S.vuelo) VM
-	NATURAL JOIN
-		(SELECT brinda.vuelo AS nro_vuelo, 
-		 		brinda.clase,
-				precio,
-				concat(cant_asientos - cantidad) AS asientos_disponibles
-		FROM brinda
-		JOIN asientos_reservados ON brinda.vuelo = asientos_reservados.vuelo AND brinda.clase = asientos_reservados.clase) VP;
-*/
 
+/****************************************************************************/
+/********************** DEFINICION DE PROCEDIMIENTOS ************************/
+/****************************************************************************/
+
+DELIMITER //
+CREATE PROCEDURE reservaSoloIda(IN nroVuelo VARCHAR(20), IN fechaVuelo DATE, IN claseVuelo VARCHAR(20),
+								IN tipoDoc VARCHAR(20), IN nroDoc SMALLINT, IN legEmp SMALLINT,
+								OUT resultado INT)
+	BEGIN
+		/* TODO implementar */
+	END//
+	
+CREATE PROCEDURE reservaIdaVuelta(	IN nroVueloIda VARCHAR(20), IN fechaVueloIda DATE, IN claseVueloIda VARCHAR(20),
+									IN nroVueloVuelta VARCHAR(20), IN fechaVueloVuelta DATE, IN claseVueloVuelta VARCHAR(20),
+									IN tipoDoc VARCHAR(20), IN nroDoc SMALLINT, IN legEmp SMALLINT,
+									OUT resultado INT)
+	BEGIN
+		/* TODO implementar */
+	END//
+DELIMITER ;
+
+/****************************************************************************/
+/************************** DEFINICION DE TRIGGERS **************************/
+/****************************************************************************/
+
+CREATE TRIGGER insReservados BEFORE INSERT ON instancias_vuelo FOR EACH ROW 
+	INSERT INTO asientos_reservados
+	SELECT vuelo, dia, clase, 0 FROM brinda 
+	WHERE (vuelo = NEW.vuelo) AND (dia = NEW.fecha);
 
 /****************************************************************************/
 /************************** DEFINICION DE USUARIOS **************************/

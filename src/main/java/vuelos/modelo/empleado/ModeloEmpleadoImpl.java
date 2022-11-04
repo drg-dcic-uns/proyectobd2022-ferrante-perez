@@ -121,7 +121,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 
 	@Override
 	public ArrayList<UbicacionesBean> recuperarUbicaciones() throws Exception {
-		
+
 		logger.info("recupera las ciudades que tienen aeropuertos.");
 		/** 
 		 * TODO Debe retornar una lista de UbicacionesBean con todas las ubicaciones almacenadas en la B.D. 
@@ -130,20 +130,27 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 *      Reemplazar el siguiente código de prueba por los datos obtenidos desde la BD.
 		 */
 		ArrayList<UbicacionesBean> ubicaciones = new ArrayList<UbicacionesBean>();
-		
+
 		String sql = "SELECT * FROM ubicaciones";
-		ResultSet rs = this.consulta(sql);
-			
-		while(rs.next()) {
-			UbicacionesBean ubicacion = new UbicacionesBeanImpl();
-			ubicacion.setPais(rs.getString("pais"));
-			ubicacion.setEstado(rs.getString("estado"));
-			ubicacion.setCiudad(rs.getString("ciudad"));
-			ubicacion.setHuso(rs.getInt("huso"));
-				
-			ubicaciones.add(ubicacion);
+		try {
+			ResultSet rs = this.consulta(sql);
+
+			while(rs.next()) {
+				UbicacionesBean ubicacion = new UbicacionesBeanImpl();
+				ubicacion.setPais(rs.getString("pais"));
+				ubicacion.setEstado(rs.getString("estado"));
+				ubicacion.setCiudad(rs.getString("ciudad"));
+				ubicacion.setHuso(rs.getInt("huso"));
+
+				ubicaciones.add(ubicacion);
+			}
+			rs.close();
+		} catch (SQLException ex) {
+			logger.error("SQLException: " + ex.getMessage());
+			logger.error("SQLState: " + ex.getSQLState());
+			logger.error("VendorError: " + ex.getErrorCode());		   
+			throw new Exception("Error en la conexión con la BD.");
 		}
-		rs.close();
 
 		return ubicaciones;
 	}
