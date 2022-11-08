@@ -1,6 +1,11 @@
 package vuelos.modelo.empleado.dao;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +14,7 @@ import vuelos.modelo.empleado.beans.EmpleadoBean;
 import vuelos.modelo.empleado.beans.InstanciaVueloBean;
 import vuelos.modelo.empleado.beans.PasajeroBean;
 import vuelos.modelo.empleado.beans.ReservaBean;
+import vuelos.modelo.empleado.beans.ReservaBeanImpl;
 import vuelos.modelo.empleado.dao.datosprueba.DAOReservaDatosPrueba;
 
 public class DAOReservaImpl implements DAOReserva {
@@ -53,24 +59,26 @@ public class DAOReservaImpl implements DAOReserva {
 		 * } 
 		 */
 		
-		/*
-		 * Datos estaticos de prueba: Quitar y reemplazar por código que invoca al S.P.
-		 * 
-		 * - Si pasajero tiene nro_doc igual a 1 retorna 101 codigo de reserva y si se pregunta por dicha reserva como dato de prueba resultado "Reserva confirmada"
-		 * - Si pasajero tiene nro_doc igual a 2 retorna 102 codigo de reserva y si se pregunta por dicha reserva como dato de prueba resultado "Reserva en espera"
-		 * - Si pasajero tiene nro_doc igual a 3 se genera una excepción, resultado "No hay asientos disponibles"
-		 * - Si pasajero tiene nro_doc igual a 4 se genera una excepción, resultado "El empleado no es válido"
-		 * - Si pasajero tiene nro_doc igual a 5 se genera una excepción, resultado "El pasajero no está registrado"
-		 * - Si pasajero tiene nro_doc igual a 6 se genera una excepción, resultado "El vuelo no es válido"
-		 * - Si pasajero tiene nro_doc igual a 7 se genera una excepción de conexión.
-		 */
-		DAOReservaDatosPrueba.registrarReservaSoloIda(pasajero, vuelo, detalleVuelo, empleado);
-		ReservaBean r = DAOReservaDatosPrueba.getReserva();
-		logger.debug("Reserva: {}, {}", r.getNumero(), r.getEstado());
-		int resultado = DAOReservaDatosPrueba.getReserva().getNumero();
+		int resultado;
+		
+		try (CallableStatement cstmt = conexion.prepareCall("CALL reservaSoloIda(?, ?, ?, ?, ?, ?, ?)")){
+			cstmt.setString(1, vuelo.getNroVuelo());
+			cstmt.setDate(2, vuelos.utils.Fechas.convertirDateADateSQL(vuelo.getFechaVuelo()));
+			cstmt.setString(3, detalleVuelo.getClase());
+			cstmt.setString(4, pasajero.getTipoDocumento());
+			cstmt.setInt(5, pasajero.getNroDocumento());
+			cstmt.setInt(6, empleado.getLegajo());
+			cstmt.registerOutParameter(7, java.sql.Types.NUMERIC);
+			
+			cstmt.execute();
+			
+			resultado = cstmt.getInt(7);
+		}catch (SQLException ex){
+			logger.debug("Error al consultar la BD. SQLException: {}. SQLState: {}. VendorError: {}.", ex.getMessage(), ex.getSQLState(), ex.getErrorCode());
+		   	throw ex;
+			}  
 		
 		return resultado;
-		// Fin datos estáticos de prueba.
 	}
 	
 	@Override
@@ -104,22 +112,31 @@ public class DAOReservaImpl implements DAOReserva {
 		 * } 
 		 */
 		
-		/*
-		 * Datos státicos de prueba: Quitar y reemplazar por código que invoca al S.P.
-		 * 
-		 * - Si pasajero tiene nro_doc igual a 1 retorna 101 codigo de reserva y si se pregunta por dicha reserva como dato de prueba resultado "Reserva confirmada"
-		 * - Si pasajero tiene nro_doc igual a 2 retorna 102 codigo de reserva y si se pregunta por dicha reserva como dato de prueba resultado "Reserva en espera"
-		 * - Si pasajero tiene nro_doc igual a 3 se genera una excepción, resultado "No hay asientos disponibles"
-		 * - Si pasajero tiene nro_doc igual a 4 se genera una excepción, resultado "El empleado no es válido"
-		 * - Si pasajero tiene nro_doc igual a 5 se genera una excepción, resultado "El pasajero no está registrado"
-		 * - Si pasajero tiene nro_doc igual a 6 se genera una excepción, resultado "El vuelo no es válido"
-		 * - Si pasajero tiene nro_doc igual a 7 se genera una excepción de conexión.
-		 */		
-		DAOReservaDatosPrueba.registrarReservaIdaVuelta(pasajero, vueloIda, detalleVueloIda, vueloVuelta, detalleVueloVuelta, empleado);
-		int resultado = DAOReservaDatosPrueba.getReserva().getNumero();
+		
+		
+		int resultado;
+		
+		try (CallableStatement cstmt = conexion.prepareCall("CALL reservaSoloIda(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")){
+			cstmt.setString(1, vueloIda.getNroVuelo());
+			cstmt.setDate(2, vuelos.utils.Fechas.convertirDateADateSQL(vueloIda.getFechaVuelo()));
+			cstmt.setString(3, detalleVueloIda.getClase());
+			cstmt.setString(4, vueloVuelta.getNroVuelo());
+			cstmt.setDate(5, vuelos.utils.Fechas.convertirDateADateSQL(vueloVuelta.getFechaVuelo()));
+			cstmt.setString(6, detalleVueloVuelta.getClase());
+			cstmt.setString(7, pasajero.getTipoDocumento());
+			cstmt.setInt(8, pasajero.getNroDocumento());
+			cstmt.setInt(9, empleado.getLegajo());
+			cstmt.registerOutParameter(10, java.sql.Types.NUMERIC);
+			
+			cstmt.execute();
+			
+			resultado = cstmt.getInt(10);
+		}catch (SQLException ex){
+			logger.debug("Error al consultar la BD. SQLException: {}. SQLState: {}. VendorError: {}.", ex.getMessage(), ex.getSQLState(), ex.getErrorCode());
+		   	throw ex;
+			}  
 		
 		return resultado;
-		// Fin datos estáticos de prueba.
 	}
 	
 	@Override
@@ -141,15 +158,33 @@ public class DAOReservaImpl implements DAOReserva {
 		 *      Nota: para acceder a la B.D. utilice la propiedad "conexion" que ya tiene una conexión
 		 *      establecida con el servidor de B.D. (inicializada en el constructor DAOReservaImpl(...)).
 		 */
-		/*
-		 * Importante, tenga en cuenta de setear correctamente el atributo IdaVuelta con el método setEsIdaVuelta en la ReservaBean
-		 */
-		// Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.
-		ReservaBean reserva = DAOReservaDatosPrueba.getReserva();
-		logger.debug("Se recuperó la reserva: {}, {}", reserva.getNumero(), reserva.getEstado());
+		ReservaBean reserva = null;
+		String sql = "SELECT * FROM reservas NATURAL JOIN reserva_vuelo_clase WHERE numero= "+codigoReserva+";";
 		
-		return reserva;
-		// Fin datos estáticos de prueba.
+		try {
+			PreparedStatement stmt = conexion.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery(sql);
+			if(rs.next()) {
+				reserva = new ReservaBeanImpl();
+				reserva.setNumero(rs.getInt("numero"));
+				reserva.setFecha(rs.getDate("fecha_vuelo"));
+				reserva.setEstado(rs.getString("estado"));
+				reserva.setPasajero(null);
+				reserva.setEmpleado(null);
+				reserva.setVuelosClase(null);
+				if(reserva.getVuelosClase().size()==1)
+					reserva.setEsIdaVuelta(false);
+				else reserva.setEsIdaVuelta(true);
+			}
+		}catch(SQLException ex) {
+			logger.error("SQLException: " + ex.getMessage());
+			logger.error("SQLState: " + ex.getSQLState());
+			logger.error("VendorError: " + ex.getErrorCode());		   
+			throw new Exception("Error en la conexión con la BD.");}
+		
+		logger.debug("Se recuperó la reserva: {}, {}", reserva.getNumero(), reserva.getEstado());
+		return reserva;		
+		
 	}
 	
 
