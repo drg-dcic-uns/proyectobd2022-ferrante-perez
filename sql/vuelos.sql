@@ -292,12 +292,26 @@ CREATE VIEW vuelos_disponibles AS
 /********************** DEFINICION DE PROCEDIMIENTOS ************************/
 /****************************************************************************/
 
+/*
 DELIMITER //
 CREATE PROCEDURE reservaSoloIda(IN nroVuelo VARCHAR(20), IN fechaVuelo DATE, IN claseVuelo VARCHAR(20),
 								IN tipoDoc VARCHAR(20), IN nroDoc SMALLINT, IN legEmp SMALLINT,
 								OUT resultado INT)
 	BEGIN
-		/* TODO implementar */
+		DECLARE Disponibles int;
+		DECLARE Estado VARCHAR(20);
+		START TRANSACTION;
+		SELECT (cant_asientos - cantidad) INTO Disponibles FROM brinda NATURAL JOIN asientos_reservados WHERE vuelo = nroVuelo and fecha = fechaVuelo and clase = claseVuelo FOR UPDATE;
+		IF Disponibles > 0 THEN
+			SET Estado = "Confirmado";
+		ELSE
+			SET Estado = "En espera";
+		END IF;
+		UPDATE asientos_reservados SET cantidad = cantidad - 1 WHERE vuelo = nroVuelo and fecha = fechaVuelo and clase = claseVuelo;
+		INSERT INTO reservas VALUES (NULL, tipoDoc, nroDoc, legEmp, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY), Estado);
+		INSERT INTO reserva_vuelo_clase VALUES (LAST_INSERT_ID(), nroVuelo, fechaVuelo, claseVuelo);
+		SET resultado = LAST_INSERT_ID();
+		COMMIT;
 	END//
 	
 CREATE PROCEDURE reservaIdaVuelta(	IN nroVueloIda VARCHAR(20), IN fechaVueloIda DATE, IN claseVueloIda VARCHAR(20),
@@ -305,9 +319,103 @@ CREATE PROCEDURE reservaIdaVuelta(	IN nroVueloIda VARCHAR(20), IN fechaVueloIda 
 									IN tipoDoc VARCHAR(20), IN nroDoc SMALLINT, IN legEmp SMALLINT,
 									OUT resultado INT)
 	BEGIN
-		/* TODO implementar */
+		DECLARE DisponiblesIda, DisponiblesVuelta int;
+		DECLARE Estado VARCHAR(20);
+		START TRANSACTION;
+		SELECT (cant_asientos - cantidad) INTO DisponiblesIda FROM brinda NATURAL JOIN asientos_reservados WHERE vuelo = nroVueloIda and fecha = fechaVueloIda and clase = claseVueloIda FOR UPDATE;
+		SELECT (cant_asientos - cantidad) INTO DisponiblesIda FROM brinda NATURAL JOIN asientos_reservados WHERE vuelo = nroVueloVuelta and fecha = fechaVueloVuelta and clase = claseVueloVuelta FOR UPDATE;
+		IF (DisponiblesIda > 0) and (DisponiblesVuelta > 0) THEN
+			SET Estado = "Confirmado";
+		ELSE
+			SET Estado = "En espera";
+		END IF;
+		INSERT INTO reservas VALUES (NULL, tipoDoc, nroDoc, legEmp, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY), Estado);
+		INSERT INTO reserva_vuelo_clase VALUES (LAST_INSERT_ID(), nroVueloIda, fechaVueloIda, claseVueloIda);
+		INSERT INTO reserva_vuelo_clase VALUES (LAST_INSERT_ID(), nroVueloVuelta, fechaVueloVuelta, claseVueloVuelta);
+		SET resultado = LAST_INSERT_ID();
 	END//
 DELIMITER ;
+*/
+
+
+DELIMITER //
+CREATE PROCEDURE reservaSoloIda(IN nroVuelo VARCHAR(20), IN fechaVuelo DATE, IN claseVuelo VARCHAR(20),
+								IN tipoDoc VARCHAR(20), IN nroDoc SMALLINT, IN legEmp SMALLINT,
+								OUT resultado INT)
+	BEGIN
+		DECLARE Disponibles int;
+		DECLARE Espacio int;
+		DECLARE Estado VARCHAR(20);
+		START TRANSACTION;
+		IF NOT EXISTS (SELECT * FROM empleados WHERE legEmp = legajo) THEN
+			SET resultado = -1;			-- no existe el empleado
+		ELSEIF NOT EXISTS (SELECT * FROM pasajeros WHERE tipoDoc = doc_tipo AND nroDoc = doc_nro) THEN
+			SET resultado = -2;			-- no existe el pasajero
+		ELSEIF NOT EXISTS (SELECT * FROM instancias_vuelo WHERE nroVuelo = vuelo AND fechaVuelo = fecha) THEN
+			SET resultado = -3;			-- no existe el vuelo
+		ELSE
+			SELECT asientos_disponibles INTO Disponibles FROM vuelos_disponibles WHERE nro_vuelo = nroVuelo AND fecha = fechaVuelo AND clase = claseVuelo;
+			IF (Disponibles <= 0) THEN
+				SET resultado = -4;		-- no hay asientos disponibles
+			ELSE
+				SELECT (CAST(cant_asientos AS SIGNED) - CAST(cantidad AS SIGNED)) INTO Espacio FROM brinda NATURAL JOIN asientos_reservados WHERE vuelo = nroVuelo and fecha = fechaVuelo and clase = claseVuelo FOR UPDATE;
+				IF (Espacio > 0) THEN
+					SET Estado = "Confirmado";
+				ELSE
+					SET Estado = "En espera";
+				END IF;
+				UPDATE asientos_reservados SET cantidad = cantidad + 1 WHERE vuelo = nroVuelo and fecha = fechaVuelo and clase = claseVuelo;
+				INSERT INTO reservas VALUES (NULL, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY), Estado, tipoDoc, nroDoc, legEmp);
+				INSERT INTO reserva_vuelo_clase VALUES (LAST_INSERT_ID(), nroVuelo, fechaVuelo, claseVuelo);
+				SET resultado = LAST_INSERT_ID();
+			END IF;
+		END IF;
+		COMMIT;
+	END//
+    
+
+CREATE PROCEDURE reservaIdaVuelta(	IN nroVueloIda VARCHAR(20), IN fechaVueloIda DATE, IN claseVueloIda VARCHAR(20),
+									IN nroVueloVuelta VARCHAR(20), IN fechaVueloVuelta DATE, IN claseVueloVuelta VARCHAR(20),
+									IN tipoDoc VARCHAR(20), IN nroDoc SMALLINT, IN legEmp SMALLINT,
+									OUT resultado INT)
+	BEGIN
+		DECLARE DisponiblesIda, DisponiblesVuelta int;
+		DECLARE EspacioIda, EspacioVuelta int;
+		DECLARE Estado VARCHAR(20);
+		START TRANSACTION;
+		IF NOT EXISTS (SELECT * FROM empleados WHERE legEmp = legajo) THEN
+			SET resultado = -1;			-- no existe el empleado
+		ELSEIF NOT EXISTS (SELECT * FROM pasajeros WHERE tipoDoc = doc_tipo AND nroDoc = doc_nro) THEN
+			SET resultado = -2;			-- no existe el pasajero
+		ELSEIF (NOT EXISTS (SELECT * FROM instancias_vuelo WHERE nroVueloIda = vuelo AND fechaVueloIda = fecha) OR
+				NOT EXISTS (SELECT * FROM instancias_vuelo WHERE nroVueloVuelta = vuelo AND fechaVueloVuelta = fecha)) THEN
+			SET resultado = -3;			-- no existe el vuelo
+		ELSE
+			SELECT asientos_disponibles INTO DisponiblesIda FROM vuelos_disponibles WHERE nro_vuelo = nroVueloIda AND fecha = fechaVueloIda AND clase = claseVueloIda;
+			SELECT asientos_disponibles INTO DisponiblesVuelta FROM vuelos_disponibles WHERE nro_vuelo = nroVueloVuelta AND fecha = fechaVueloVuelta AND clase = claseVueloVuelta;
+			IF (DisponiblesIda <= 0 OR DisponiblesVuelta <= 0) THEN
+				SET resultado = -4;		-- no hay asientos disponibles
+			ELSE
+				SELECT (CAST(cant_asientos AS SIGNED) - CAST(cantidad AS SIGNED)) INTO EspacioIda FROM brinda NATURAL JOIN asientos_reservados WHERE vuelo = nroVueloIda and fecha = fechaVueloIda and clase = claseVueloIda FOR UPDATE;
+				SELECT (CAST(cant_asientos AS SIGNED) - CAST(cantidad AS SIGNED)) INTO EspacioVuelta FROM brinda NATURAL JOIN asientos_reservados WHERE vuelo = nroVueloVuelta and fecha = fechaVueloVuelta and clase = claseVueloVuelta FOR UPDATE;
+				IF (EspacioIda > 0) AND (EspacioVuelta > 0) THEN
+					SET Estado = "Confirmado";
+				ELSE
+					SET Estado = "En espera";
+				END IF;
+				UPDATE asientos_reservados SET cantidad = cantidad + 1 WHERE (vuelo = nroVueloIda and fecha = fechaVueloIda and clase = claseVueloIda) OR
+																				(vuelo = nroVueloVuelta and fecha = fechaVueloVuelta and clase = claseVueloVuelta);
+				INSERT INTO reservas VALUES (NULL, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY), Estado, tipoDoc, nroDoc, legEmp);
+				INSERT INTO reserva_vuelo_clase VALUES (LAST_INSERT_ID(), nroVueloIda, fechaVueloIda, claseVueloIda);
+				INSERT INTO reserva_vuelo_clase VALUES (LAST_INSERT_ID(), nroVueloVuelta, fechaVueloVuelta, claseVueloVuelta);
+				SET resultado = LAST_INSERT_ID();
+			END IF;
+		END IF;
+		COMMIT;
+	END//
+DELIMITER ;
+
+
 
 /****************************************************************************/
 /************************** DEFINICION DE TRIGGERS **************************/
@@ -327,6 +435,8 @@ GRANT ALL PRIVILEGES ON vuelos.* TO 'admin'@'localhost' WITH GRANT OPTION;
 
 CREATE USER 'empleado'@'%' IDENTIFIED BY 'empleado';
 GRANT SELECT ON vuelos.* TO 'empleado'@'%';
+GRANT EXECUTE ON PROCEDURE reservaSoloIda TO 'empleado'@'%';
+GRANT EXECUTE ON PROCEDURE reservaIdaVuelta TO 'empleado'@'%';
 
 GRANT ALL PRIVILEGES ON vuelos.reservas TO 'empleado'@'%' WITH GRANT OPTION;
 GRANT ALL PRIVILEGES ON vuelos.pasajeros TO 'empleado'@'%' WITH GRANT OPTION;
