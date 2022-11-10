@@ -27,4 +27,19 @@ public interface DAOVuelos {
 	 */
 	ArrayList<DetalleVueloBean> recuperarDetalleVuelo(InstanciaVueloBean vuelo) throws Exception;
 
+	/**
+	 * Recupera las instancias de vuelos que tiene reserva de nroReserva
+	 * 
+	 * @param nroReserva
+	 * @return
+	 */
+	ArrayList<InstanciaVueloBean> recuperarVuelo(int nroReserva) throws Exception;
+	
+	/**
+	 * Recupera los detalles de un vuelo con una clase expecifica
+	 * @param vuelo
+	 * @param clase
+	 * @return
+	 */
+	DetalleVueloBean recuperarDetalleVueloClase(InstanciaVueloBean vuelo, String clase) throws Exception;
 }
