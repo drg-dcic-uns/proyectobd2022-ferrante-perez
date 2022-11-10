@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import vuelos.modelo.empleado.beans.DetalleVueloBean;
 import vuelos.modelo.empleado.beans.EmpleadoBean;
 import vuelos.modelo.empleado.beans.InstanciaVueloBean;
+import vuelos.modelo.empleado.beans.InstanciaVueloClaseBean;
+import vuelos.modelo.empleado.beans.InstanciaVueloClaseBeanImpl;
 import vuelos.modelo.empleado.beans.PasajeroBean;
 import vuelos.modelo.empleado.beans.ReservaBean;
 import vuelos.modelo.empleado.beans.ReservaBeanImpl;
@@ -71,8 +75,15 @@ public class DAOReservaImpl implements DAOReserva {
 			cstmt.registerOutParameter(7, java.sql.Types.NUMERIC);
 			
 			cstmt.execute();
-			
 			resultado = cstmt.getInt(7);
+			switch (resultado) {
+				case -1: throw new Exception("El empleado no es válido.");
+				case -2: throw new Exception("El pasajero no está registrado.");
+				case -3: throw new Exception("El vuelo no es válido.");
+				case -4: throw new Exception("No hay asientos disponibles.");
+				default: logger.debug("Reserva compleatada con exito");
+			}
+
 		}catch (SQLException ex){
 			logger.debug("Error al consultar la BD. SQLException: {}. SQLState: {}. VendorError: {}.", ex.getMessage(), ex.getSQLState(), ex.getErrorCode());
 		   	throw ex;
@@ -116,7 +127,7 @@ public class DAOReservaImpl implements DAOReserva {
 		
 		int resultado;
 		
-		try (CallableStatement cstmt = conexion.prepareCall("CALL reservaSoloIda(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")){
+		try (CallableStatement cstmt = conexion.prepareCall("CALL reservaIdaVuelta(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")){
 			cstmt.setString(1, vueloIda.getNroVuelo());
 			cstmt.setDate(2, vuelos.utils.Fechas.convertirDateADateSQL(vueloIda.getFechaVuelo()));
 			cstmt.setString(3, detalleVueloIda.getClase());
@@ -131,6 +142,13 @@ public class DAOReservaImpl implements DAOReserva {
 			cstmt.execute();
 			
 			resultado = cstmt.getInt(10);
+			switch (resultado) {
+				case -1: throw new Exception("El empleado no es válido.");
+				case -2: throw new Exception("El pasajero no está registrado.");
+				case -3: throw new Exception("El vuelo no es válido.");
+				case -4: throw new Exception("No hay asientos disponibles.");
+				default: logger.debug("Reserva compleatada con exito");
+			}
 		}catch (SQLException ex){
 			logger.debug("Error al consultar la BD. SQLException: {}. SQLState: {}. VendorError: {}.", ex.getMessage(), ex.getSQLState(), ex.getErrorCode());
 		   	throw ex;
@@ -160,6 +178,9 @@ public class DAOReservaImpl implements DAOReserva {
 		 */
 		ReservaBean reserva = null;
 		String sql = "SELECT * FROM reservas NATURAL JOIN reserva_vuelo_clase WHERE numero= "+codigoReserva+";";
+		DAOPasajero pas = new DAOPasajeroImpl(conexion);
+		DAOEmpleado emp = new DAOEmpleadoImpl(conexion);
+		DAOVuelos vue = new DAOVuelosImpl(conexion);
 		
 		try {
 			PreparedStatement stmt = conexion.prepareStatement(sql);
@@ -168,10 +189,27 @@ public class DAOReservaImpl implements DAOReserva {
 				reserva = new ReservaBeanImpl();
 				reserva.setNumero(rs.getInt("numero"));
 				reserva.setFecha(rs.getDate("fecha_vuelo"));
+				reserva.setVencimiento(rs.getDate("vencimiento"));
 				reserva.setEstado(rs.getString("estado"));
-				reserva.setPasajero(null);
-				reserva.setEmpleado(null);
-				reserva.setVuelosClase(null);
+				reserva.setPasajero(pas.recuperarPasajero(rs.getString("doc_tipo"), rs.getInt("doc_nro")));
+				reserva.setEmpleado(emp.recuperarEmpleado(rs.getInt("legajo")));
+				
+				ArrayList<InstanciaVueloClaseBean> vuelosYClases = new ArrayList<InstanciaVueloClaseBean>();
+				
+				ArrayList<InstanciaVueloBean> vuelos = vue.recuperarVuelo(codigoReserva);
+				Iterator<InstanciaVueloBean> itVuelos = vuelos.iterator();
+				
+				InstanciaVueloClaseBean vuelosClase = new InstanciaVueloClaseBeanImpl();
+				
+				while(itVuelos.hasNext()) {
+					InstanciaVueloBean auxVuelo = itVuelos.next();
+					vuelosClase.setVuelo(auxVuelo);
+					vuelosClase.setClase(vue.recuperarDetalleVueloClase(auxVuelo, rs.getString("clase")));
+					vuelosYClases.add(vuelosClase);
+				}
+				
+				reserva.setVuelosClase(vuelosYClases);
+				
 				if(reserva.getVuelosClase().size()==1)
 					reserva.setEsIdaVuelta(false);
 				else reserva.setEsIdaVuelta(true);
