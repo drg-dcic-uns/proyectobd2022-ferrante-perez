@@ -53,6 +53,7 @@ public class DAOPasajeroImpl implements DAOPasajero {
 				pasajero.setNombre(rs.getString("nombre"));
 				pasajero.setDireccion(rs.getString("direccion"));
 				pasajero.setTelefono(rs.getString("telefono"));
+				pasajero.setNacionalidad(rs.getString("nacionalidad"));
 				
 				logger.info("El DAO retorna al pasajero {} {}", pasajero.getApellido(), pasajero.getNombre());
 			}
