@@ -77,11 +77,13 @@ public class DAOReservaImpl implements DAOReserva {
 			cstmt.execute();
 			resultado = cstmt.getInt(7);
 			switch (resultado) {
-				case -1: throw new Exception("El empleado no es válido.");
-				case -2: throw new Exception("El pasajero no está registrado.");
-				case -3: throw new Exception("El vuelo no es válido.");
-				case -4: throw new Exception("No hay asientos disponibles.");
-				default: logger.debug("Reserva compleatada con exito");
+				case -1: throw new Exception("SQLEXCEPTION!, transacción abortada'");
+				case -2: throw new Exception("El empleado no es válido.");
+				case -3: throw new Exception("El pasajero no está registrado.");
+				case -4: throw new Exception("El vuelo no es válido.");
+				case -5: throw new Exception("No se puede reservas en menos de 15 dias.");
+				case -6: throw new Exception("No hay asientos disponibles.");
+				default: logger.debug("Reserva compleatada con exito.");
 			}
 
 		}catch (SQLException ex){
@@ -143,10 +145,12 @@ public class DAOReservaImpl implements DAOReserva {
 			
 			resultado = cstmt.getInt(10);
 			switch (resultado) {
-				case -1: throw new Exception("El empleado no es válido.");
-				case -2: throw new Exception("El pasajero no está registrado.");
-				case -3: throw new Exception("El vuelo no es válido.");
-				case -4: throw new Exception("No hay asientos disponibles.");
+				case -1: throw new Exception("SQLEXCEPTION!, transacción abortada'");
+				case -2: throw new Exception("El empleado no es válido.");
+				case -3: throw new Exception("El pasajero no está registrado.");
+				case -4: throw new Exception("El vuelo no es válido.");
+				case -5: throw new Exception("No se puede reservas en menos de 15 dias.");
+				case -6: throw new Exception("No hay asientos disponibles.");
 				default: logger.debug("Reserva compleatada con exito");
 			}
 		}catch (SQLException ex){
