@@ -18,11 +18,6 @@ public class ModeloImpl implements Modelo {
 
 	protected Connection conexion = null;
 
-     /**
-	 * TODO Inicializar la propiedad "conexión" con una conexion establecida con el servidor de B.D.
-	 *      utilizando el método estático Connection getConection(username, password) de la clase vuelos.util.Conexion.  
-	 *      Retornar verdadero si se pudo establecer la conexión (conexion!= null) y falso en caso contrario
-	 */
 	@Override
 	public boolean conectar(String username, String password) {
 		logger.info("Se establece la conexión a la BD.");
@@ -37,18 +32,11 @@ public class ModeloImpl implements Modelo {
 		Conexion.closeConnection(this.conexion);		
 	}
 
-	/**
-	 * TODO Utilizando la propiedad "conexión" ejecuta la consulta SQL recibida como parámetro y 
-	 *      retorna el resultado como un objeto ResulSet.
-	 *      Si se produce una excepción retorna null. El codigo para manejar la excepción ya 
-	 *      se encuentra implementado, solo se registran los errores en el log.     
-	 */
 	@Override
 	public ResultSet consulta(String sql) 
 	{
 		logger.info("Se intenta realizar la siguiente consulta {}",sql);
 		ResultSet rs= null;		
-		// Descomentar y completar el codigo dentro de try{...} para realizar la consulta SQL 
 		try
 		{       
 			PreparedStatement stmt = conexion.prepareStatement(sql);
@@ -62,16 +50,11 @@ public class ModeloImpl implements Modelo {
 		return rs;
 	}	
 	
-	/**
-	 * TODO Utilizando la propiedad "conexión" ejecuta la sentencia de 
-	 *      actualización (i.e insert, delete , update, ...) SQL recibida como parámetro        
-	 */
 	@Override
 	public void actualizacion (String sql)
 	{
 		logger.info("Se intenta realizar la siguiente actualizacion {}",sql);
 				
-		// Descomentar y completar codigo dentro de try{...} para realizar la sentencia de actualización SQL 
 		try
 		{       
 			PreparedStatement stmt = conexion.prepareStatement(sql);

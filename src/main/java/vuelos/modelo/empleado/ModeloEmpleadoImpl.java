@@ -47,16 +47,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 	@Override
 	public boolean autenticarUsuarioAplicacion(String legajo, String password) throws Exception {
 		logger.info("Se intenta autenticar el legajo {} con password {}", legajo, password);
-		/** 
-		 * TODO Código que autentica que exista un legajo de empleado y que el password corresponda a ese legajo
-		 *      (recuerde que el password guardado en la BD está encriptado con MD5) 
-		 *      En caso exitoso deberá registrar el legajo en la propiedad legajo y retornar true.
-		 *      Si la autenticación no es exitosa porque el legajo no es válido o el password es incorrecto
-		 *      deberá retornar falso y si hubo algún otro error deberá producir y propagar una excepción.
-		 *      
-		 *      esto ya funciona -AF
-		 */
-
 		
 		boolean success = false;
 		DAOEmpleado dao = new DAOEmpleadoImpl(this.conexion);
@@ -84,10 +74,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 	@Override
 	public ArrayList<String> obtenerTiposDocumento() {
 		logger.info("recupera los tipos de documentos.");
-		/** 
-		 * TODO Debe retornar una lista de strings con los tipos de documentos. 
-		 *      Deberia propagar una excepción si hay algún error en la consulta.
-		 */
 		
 		ArrayList<String> tipos = new ArrayList<String>();
 		
@@ -123,12 +109,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 	public ArrayList<UbicacionesBean> recuperarUbicaciones() throws Exception {
 
 		logger.info("recupera las ciudades que tienen aeropuertos.");
-		/** 
-		 * TODO Debe retornar una lista de UbicacionesBean con todas las ubicaciones almacenadas en la B.D. 
-		 *      Deberia propagar una excepción si hay algún error en la consulta.
-		 *      
-		 *      Reemplazar el siguiente código de prueba por los datos obtenidos desde la BD.
-		 */
 		ArrayList<UbicacionesBean> ubicaciones = new ArrayList<UbicacionesBean>();
 
 		String sql = "SELECT * FROM ubicaciones";

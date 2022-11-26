@@ -33,19 +33,6 @@ public class DAOVuelosImpl implements DAOVuelos {
 
 	@Override
 	public ArrayList<InstanciaVueloBean> recuperarVuelosDisponibles(Date fechaVuelo, UbicacionesBean origen, UbicacionesBean destino)  throws Exception {
-		/** 
-		 * TODO Debe retornar una lista de vuelos disponibles para ese día con origen y destino según los parámetros. 
-		 *      Debe propagar una excepción si hay algún error en la consulta.    
-		 *      
-		 *      Nota: para acceder a la B.D. utilice la propiedad "conexion" que ya tiene una conexión
-		 *      establecida con el servidor de B.D. (inicializada en el constructor DAOVuelosImpl(...)).  
-		 */
-		/**Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.
-		ArrayList<InstanciaVueloBean> resultado = DAOVuelosDatosPrueba.generarVuelos(fechaVuelo);  
-		
-		return resultado;
-		Fin datos estáticos de prueba.
-		*/
 		logger.info("Lista de vuelos de la fecha {}", vuelos.utils.Fechas.convertirDateAString(fechaVuelo));
 		ArrayList<InstanciaVueloBean> resultado = new ArrayList<InstanciaVueloBean>();
 		
@@ -93,13 +80,6 @@ public class DAOVuelosImpl implements DAOVuelos {
 
 	@Override
 	public ArrayList<DetalleVueloBean> recuperarDetalleVuelo(InstanciaVueloBean vuelo) throws Exception {
-		/** 
-		 * TODO Debe retornar una lista de clases, precios y asientos disponibles de dicho vuelo.		   
-		 *      Debe propagar una excepción si hay algún error en la consulta.    
-		 *      
-		 *      Nota: para acceder a la B.D. utilice la propiedad "conexion" que ya tiene una conexión
-		 *      establecida con el servidor de B.D. (inicializada en el constructor DAOVuelosImpl(...)).
-		 */
 		
 		ArrayList<DetalleVueloBean> resultado = new ArrayList<DetalleVueloBean>();
 		
@@ -186,8 +166,7 @@ public class DAOVuelosImpl implements DAOVuelos {
 		}catch (SQLException ex) {
 			logger.error("SQLException: " + ex.getMessage());
 			logger.error("SQLState: " + ex.getSQLState());
-			logger.error("VendorError: " + ex.getErrorCode());		   
-			//throw new Exception("Error en la conexión con la BD.");
+			logger.error("VendorError: " + ex.getErrorCode());
 	   }
 		
 		return resultado;
@@ -196,13 +175,6 @@ public class DAOVuelosImpl implements DAOVuelos {
 	
 	
 	public DetalleVueloBean recuperarDetalleVueloClase(InstanciaVueloBean vuelo, String clase) throws Exception {
-		/** 
-		 * TODO Debe retornar una lista de clases, precios y asientos disponibles de dicho vuelo.		   
-		 *      Debe propagar una excepción si hay algún error en la consulta.    
-		 *      
-		 *      Nota: para acceder a la B.D. utilice la propiedad "conexion" que ya tiene una conexión
-		 *      establecida con el servidor de B.D. (inicializada en el constructor DAOVuelosImpl(...)).
-		 */
 		
 		DetalleVueloBean dvuelo = new DetalleVueloBeanImpl();
 		
