@@ -114,13 +114,14 @@ public class DAOVuelosImpl implements DAOVuelos {
 				+ "	FROM "
 				+ " reserva_vuelo_clase "
 				+ "	JOIN vuelos_programados ON reserva_vuelo_clase.vuelo = vuelos_programados.numero "
-				+ " NATURAL LEFT JOIN salidas "
-				+ " NATURAL LEFT JOIN instancias_vuelo "
+				+ " NATURAL JOIN instancias_vuelo "
+				+ " NATURAL JOIN salidas "
 				+ "	JOIN aeropuertos AS salida ON aeropuerto_salida = salida.codigo "
 				+ "	JOIN aeropuertos AS llegada ON aeropuerto_llegada = llegada.codigo "
 				+ "	JOIN ubicaciones AS ubi_salida ON salida.pais = ubi_salida.pais and salida.estado = ubi_salida.estado and salida.ciudad = ubi_salida.ciudad "
 				+ "	JOIN ubicaciones AS ubi_llegada ON llegada.pais = ubi_llegada.pais and llegada.estado = ubi_llegada.estado and llegada.ciudad = ubi_llegada.ciudad "
-				+ " WHERE reserva_vuelo_clase.numero = "+nroReserva+";";
+				+ " WHERE reserva_vuelo_clase.fecha_vuelo = instancias_vuelo.fecha "
+				+ " AND reserva_vuelo_clase.numero = "+nroReserva+";";
 		
 		try {
 			PreparedStatement stmt = conexion.prepareStatement(sql);
