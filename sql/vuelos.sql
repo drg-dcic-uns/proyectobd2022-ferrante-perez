@@ -391,10 +391,33 @@ DELIMITER ;
 /************************** DEFINICION DE TRIGGERS **************************/
 /****************************************************************************/
 
+/*
 CREATE TRIGGER insReservados BEFORE INSERT ON instancias_vuelo FOR EACH ROW 
 	INSERT INTO asientos_reservados
 	SELECT vuelo, dia, clase, 0 FROM brinda 
 	WHERE (vuelo = NEW.vuelo) AND (dia = NEW.fecha);
+*/
+	
+DELIMITER //
+CREATE TRIGGER insReservados BEFORE INSERT ON instancias_vuelo FOR EACH ROW
+	BEGIN
+		DECLARE Vuelo VARCHAR(10);
+		DECLARE Fecha DATE;
+		DECLARE Clase VARCHAR(20);
+		DECLARE fin BOOLEAN DEFAULT FALSE;
+		DECLARE C CURSOR FOR SELECT vuelo, fecha, clase 
+							 FROM brinda NATURAL LEFT JOIN salidas
+							 WHERE (vuelo = NEW.vuelo) AND (dia = NEW.dia);
+		DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin = TRUE;
+		OPEN C;
+		FETCH C INTO Vuelo, Fecha, Clase;
+		WHILE NOT fin DO
+			INSERT INTO asientos_reservados VALUES (Vuelo, Fecha, Clase, 0);
+			FETCH C INTO Vuelo, Fecha, Clase;
+		END WHILE;
+		CLOSE C;
+	END//
+DELIMITER ;
 
 /****************************************************************************/
 /************************** DEFINICION DE USUARIOS **************************/
