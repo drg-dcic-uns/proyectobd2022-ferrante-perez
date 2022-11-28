@@ -320,7 +320,7 @@ CREATE PROCEDURE reservaSoloIda(IN nroVuelo VARCHAR(20), IN fechaVuelo DATE, IN 
 			IF (Disponibles <= 0) THEN
 				SET resultado = -6;		-- no hay asientos disponibles
 			ELSE
-				SELECT (CAST(cant_asientos AS SIGNED) - CAST(cantidad AS SIGNED)) INTO Espacio FROM brinda NATURAL JOIN asientos_reservados WHERE vuelo = nroVuelo and fecha = fechaVuelo and clase = claseVuelo FOR UPDATE;
+				SELECT (CAST(cant_asientos AS SIGNED) - CAST(cantidad AS SIGNED)) INTO Espacio FROM brinda NATURAL LEFT JOIN instancias_vuelo NATURAL LEFT JOIN asientos_reservados WHERE vuelo = nroVuelo and fecha = fechaVuelo and clase = claseVuelo FOR UPDATE;
 				IF (Espacio > 0) THEN
 					SET Estado = "Confirmado";
 				ELSE
@@ -357,7 +357,7 @@ CREATE PROCEDURE reservaIdaVuelta(	IN nroVueloIda VARCHAR(20), IN fechaVueloIda 
 		ELSEIF (NOT EXISTS (SELECT * FROM instancias_vuelo WHERE nroVueloIda = vuelo AND fechaVueloIda = fecha) OR
 				NOT EXISTS (SELECT * FROM instancias_vuelo WHERE nroVueloVuelta = vuelo AND fechaVueloVuelta = fecha)) THEN
 			SET resultado = -4;			-- no existe el vuelo
-		ELSEIF  (DATE_ADD(CURDATE(), INTERVAL 15 DAY) >= fechaVuelo) THEN
+		ELSEIF  (DATE_ADD(CURDATE(), INTERVAL 15 DAY) >= fechaVueloIda) THEN
 			SET resultado = -5;			-- no existe el vuelo
 		ELSE
 			SELECT asientos_disponibles INTO DisponiblesIda FROM vuelos_disponibles WHERE nro_vuelo = nroVueloIda AND fecha = fechaVueloIda AND clase = claseVueloIda;
@@ -366,8 +366,8 @@ CREATE PROCEDURE reservaIdaVuelta(	IN nroVueloIda VARCHAR(20), IN fechaVueloIda 
 			ELSE
 			SELECT asientos_disponibles INTO DisponiblesVuelta FROM vuelos_disponibles WHERE nro_vuelo = nroVueloVuelta AND fecha = fechaVueloVuelta AND clase = claseVueloVuelta;
 			
-				SELECT (CAST(cant_asientos AS SIGNED) - CAST(cantidad AS SIGNED)) INTO EspacioIda FROM brinda NATURAL JOIN asientos_reservados WHERE vuelo = nroVueloIda and fecha = fechaVueloIda and clase = claseVueloIda FOR UPDATE;
-				SELECT (CAST(cant_asientos AS SIGNED) - CAST(cantidad AS SIGNED)) INTO EspacioVuelta FROM brinda NATURAL JOIN asientos_reservados WHERE vuelo = nroVueloVuelta and fecha = fechaVueloVuelta and clase = claseVueloVuelta FOR UPDATE;
+				SELECT (CAST(cant_asientos AS SIGNED) - CAST(cantidad AS SIGNED)) INTO EspacioIda FROM brinda NATURAL LEFT JOIN instancias_vuelo NATURAL LEFT JOIN asientos_reservados WHERE vuelo = nroVueloIda and fecha = fechaVueloIda and clase = claseVueloIda FOR UPDATE;
+				SELECT (CAST(cant_asientos AS SIGNED) - CAST(cantidad AS SIGNED)) INTO EspacioVuelta FROM brinda NATURAL LEFT JOIN instancias_vuelo NATURAL LEFT JOIN asientos_reservados WHERE vuelo = nroVueloVuelta and fecha = fechaVueloVuelta and clase = claseVueloVuelta FOR UPDATE;
 				IF (EspacioIda > 0) AND (EspacioVuelta > 0) THEN
 					SET Estado = "Confirmado";
 				ELSE
